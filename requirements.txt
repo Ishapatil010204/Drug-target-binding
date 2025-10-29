@@ -1,0 +1,21 @@
+# Data + ML
+numpy==2.3.4
+pandas==2.2.3
+scikit-learn==1.7.2
+scipy==1.16.2
+xgboost==2.1.4
+joblib==1.4.2
+tqdm==4.67.1
+
+# PyTorch (GPU build)
+torch==2.9.0+cu128
+torchvision==0.24.0+cu128
+torchaudio==2.9.0+cu128
+
+# Utilities
+pillow==11.3.0
+networkx==3.5
+sympy==1.14.0
+
+# Web App
+streamlit==1.39.0

@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Data & Models
+data/
+models/
+*.npy
+*.pkl
+*.csv
+*.tsv
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+
+# Environment files
+.env
+*.bak
+
+# VSCode & OS
+.vscode/
+.DS_Store
+Thumbs.db
