@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🧬 DrugLikeliness12
 
 GPU-accelerated Drug–Target Binding Prediction using **XGBoost (CUDA)**. This project trains models on the **BindingDB dataset** to predict binding affinity (regression) and binding likelihood (classification). It includes a Streamlit application for inference and is optimized for NVIDIA GPUs with **CUDA 12.8+**.
@@ -135,3 +136,6 @@ GPU-accelerated Drug–Target Binding Prediction using **XGBoost (CUDA)**. This 
 
 * Ensure NVIDIA drivers and CUDA toolkit align with library requirements (CUDA 12.8).
 * The `.gitignore` file should exclude large data (`.tsv`, `.csv`), features (`.npy`), and model (`.pkl`) files.
+=======
+# Drug-target-binding
+>>>>>>> f37c5d3110611be2588c4bc5ef471b921d03ef1b
