@@ -1,24 +1,35 @@
-# Data + ML
-numpy==2.3.4
-pandas==2.2.3
-scikit-learn==1.7.2
-scipy==1.16.2
-xgboost==2.1.4
-joblib==1.4.2
-tqdm==4.67.1
+# ===============================
+# 📦 Core Data & ML Libraries
+# ===============================
+numpy>=1.26.0,<2.4.0
+pandas>=2.2.0,<3.0.0
+scikit-learn>=1.5.0,<1.8.0
+scipy>=1.12.0,<1.17.0
+xgboost>=2.0.0,<2.2.0
+joblib>=1.4.0
+tqdm>=4.65.0
+
+# ===============================
+# 🧪 Cheminformatics
+# ===============================
 rdkit-pypi==2022.9.5
 
-# PyTorch (GPU build)
-torch==2.9.0
+# ===============================
+# 🔥 PyTorch (CPU build for compatibility)
+# If you have CUDA, install torch manually with pip install torch==2.9.0+cu121 -f https://download.pytorch.org/whl/torch_stable.html
+# ===============================
+torch>=2.1.0,<2.10.0
+torchvision>=0.16.0,<0.25.0
+torchaudio>=2.1.0,<2.10.0
 
-torchvision==0.24.0
-torchaudio==2.9.0
+# ===============================
+# 🛠️ Utilities
+# ===============================
+pillow>=10.0.0,<11.0.0
+networkx>=3.0,<4.0
+sympy>=1.12.0,<1.15.0
 
-# Utilities
-pillow==10.4.0
-
-networkx==3.5
-sympy==1.14.0
-
-# Web App
-streamlit==1.39.0
+# ===============================
+# 🌐 Web App Framework
+# ===============================
+streamlit>=1.35.0,<1.40.0
