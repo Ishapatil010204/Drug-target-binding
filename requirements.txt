@@ -8,12 +8,14 @@ joblib==1.4.2
 tqdm==4.67.1
 
 # PyTorch (GPU build)
-torch==2.9.0+cu128
-torchvision==0.24.0+cu128
-torchaudio==2.9.0+cu128
+torch==2.9.0
+
+torchvision==0.24.0
+torchaudio==2.9.0
 
 # Utilities
-pillow==11.3.0
+pillow==10.4.0
+
 networkx==3.5
 sympy==1.14.0
 
