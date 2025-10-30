@@ -6,7 +6,7 @@ scipy==1.16.2
 xgboost==2.1.4
 joblib==1.4.2
 tqdm==4.67.1
-rdkit==2025.3.6
+rdkit-pypi==2022.9.5
 
 # PyTorch (GPU build)
 torch==2.9.0
