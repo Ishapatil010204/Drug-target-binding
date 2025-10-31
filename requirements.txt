@@ -13,7 +13,7 @@ tqdm>=4.65.0
 # 🧪 Cheminformatics (RDKit)
 # =====================================
 # ✅ Works with Python ≤ 3.11
-rdkit-pypi>=2022.9.5
+rdkit-lite
 
 # =====================================
 # 🔥 PyTorch (CPU build for compatibility)
