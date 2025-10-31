@@ -1,31 +1,37 @@
 # =====================================
 # Core Data & ML Libraries
 # =====================================
-numpy==1.26.4
-pandas==2.2.0
-scikit-learn==1.5.0
-scipy==1.12.0
+numpy==1.26.4               # Critical: Avoid NumPy 2.0+
+pandas>=2.2.0,<3.0.0
+scikit-learn>=1.5.0,<1.8.0
+scipy>=1.12.0,<1.17.0
 xgboost==2.1.4
-joblib==1.4.0
-tqdm==4.66.0
+joblib>=1.4.0
+tqdm>=4.65.0
 
 # =====================================
-# Cheminformatics (Use conda-forge version)
+# Cheminformatics (RDKit)
 # =====================================
-rdkit-pypi==2022.9.5  # More compatible version
+rdkit>=2025.9.1           # Use official rdkit (not rdkit-pypi)
+# rdkit-pypi==2022.9.5    # Remove: outdated, not needed
+py3dmol>=2.0.0
 
 # =====================================
-# Visualization (optional - can be removed if problematic)
+# PyTorch (CPU build for compatibility)
 # =====================================
-py3dmol==0.8.0
-Pillow==10.2.0
+torch>=2.1.0,<2.10.0
+torchvision>=0.16.0,<0.25.0
+torchaudio>=2.1.0,<2.10.0
+
+# =====================================
+# Utilities
+# =====================================
+pillow>=10.0.0,<11.0.0
+networkx>=3.0,<4.0
+sympy>=1.12.0,<1.15.0
 
 # =====================================
 # Web App Framework
 # =====================================
 streamlit==1.39.0
-
-# =====================================
-# Utilities
-# =====================================
-networkx==3.1
+rich>=13.0.0,<14.0.0
