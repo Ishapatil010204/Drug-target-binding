@@ -12,8 +12,11 @@ tqdm>=4.65.0
 # =====================================
 # 🧪 Cheminformatics (RDKit)
 # =====================================
-# ✅ Works with Python ≤ 3.11
+# 🧪 Cheminformatics (RDKit)
+# RDKit is not supported on Streamlit Cloud (Python 3.12+)
+# Using rdkit-lite for compatibility (basic molecule features only)
 rdkit-lite
+
 
 # =====================================
 # 🔥 PyTorch (CPU build for compatibility)
