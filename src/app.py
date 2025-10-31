@@ -449,27 +449,36 @@ class RealMLPredictor:
         self.load_models()
 
     def load_models(self):
-        """Load trained models from the 'models/' directory"""
-        model_dir = os.path.join(os.path.dirname(__file__), "..", "models")
-        model_dir = os.path.abspath(model_dir)
+    """Load trained models from the 'models/' directory"""
+    model_dir = os.path.join(os.path.dirname(__file__), "..", "models")
+    model_dir = os.path.abspath(model_dir)
 
-        try:
-            with open(os.path.join(model_dir, 'classifier.pkl'), 'rb') as f:
-                self.classifier = pickle.load(f)
-                self.classifier.set_params(device='cpu')  # <-- ADD THIS LINE
+    try:
+        with open(os.path.join(model_dir, 'classifier.pkl'), 'rb') as f:
+            self.classifier = pickle.load(f)
+            # ----- NEW: force CPU & fast histogram -----
+            if hasattr(self.classifier, "set_params"):
+                self.classifier.set_params(tree_method="hist", device="cpu")
+            else:                                 # older XGBoost API
+                self.classifier.tree_method = "hist"
+                self.classifier.device = "cpu"
 
-            with open(os.path.join(model_dir, 'regressor.pkl'), 'rb') as f:
-                self.regressor = pickle.load(f)
-                self.regressor.set_params(device='cpu')  # <-- AND ADD THIS LINE
+        with open(os.path.join(model_dir, 'regressor.pkl'), 'rb') as f:
+            self.regressor = pickle.load(f)
+            if hasattr(self.regressor, "set_params"):
+                self.regressor.set_params(tree_method="hist", device="cpu")
+            else:
+                self.regressor.tree_method = "hist"
+                self.regressor.device = "cpu"
 
-            with open(os.path.join(model_dir, 'scaler.pkl'), 'rb') as f:
-                self.scaler = pickle.load(f)
-            
-            self.models_loaded = True
-            return True
-        except FileNotFoundError:
-            return False
+        with open(os.path.join(model_dir, 'scaler.pkl'), 'rb') as f:
+            self.scaler = pickle.load(f)
 
+        self.models_loaded = True
+        return True
+    except FileNotFoundError:
+        return False
+        
     def predict(self, protein_seq, drug_smiles):
         print("\n--- Starting Prediction (v2 Debug) ---")
         try:
