@@ -39,33 +39,33 @@ warnings.filterwarnings(
     module="xgboost"
 )
 
-# Try to import RDKit (optional)
+# ==================== RDKit Import with Debug ====================
+RDKIT_AVAILABLE = False
+import sys
+
 try:
+    print("Attempting to import RDKit...", file=sys.stderr)
     from rdkit import Chem
-    from rdkit.Chem import Draw, AllChem   # ← AllChem here
+    print("RDKit Chem imported", file=sys.stderr)
+    
+    from rdkit.Chem import Draw, AllChem
+    print("RDKit Draw & AllChem imported", file=sys.stderr)
+    
     import py3Dmol
+    print("py3Dmol imported", file=sys.stderr)
+    
     import streamlit.components.v1 as components
+    print("Streamlit components imported", file=sys.stderr)
+    
     RDKIT_AVAILABLE = True
-except ImportError:
-    # Try to import RDKit (with detailed error logging)
+    print("RDKit fully available! Visualizations enabled.", file=sys.stderr)
+
+except Exception as e:
+    print(f"RDKit import failed: {type(e).__name__}: {e}", file=sys.stderr)
+    import traceback
+    traceback.print_exc(file=sys.stderr)
     RDKIT_AVAILABLE = False
-    try:
-        import sys
-        print("Attempting to import RDKit...", file=sys.stderr)
-        from rdkit import Chem
-        print("RDKit Chem imported", file=sys.stderr)
-        from rdkit.Chem import Draw, AllChem
-        print("RDKit Draw & AllChem imported", file=sys.stderr)
-        import py3Dmol
-        print("py3Dmol imported", file=sys.stderr)
-        import streamlit.components.v1 as components
-        RDKIT_AVAILABLE = True
-        print("RDKit fully available!", file=sys.stderr)
-    except Exception as e:
-        print(f"RDKit import failed: {type(e).__name__}: {e}", file=sys.stderr)
-        import traceback
-        traceback.print_exc(file=sys.stderr)
-        RDKIT_AVAILABLE = False
+    print("RDKit unavailable. Falling back to text-only mode.", file=sys.stderr)
 
 
 # ==================== PAGE CONFIG ====================
