@@ -13,6 +13,7 @@ tqdm>=4.65.0
 # 🧪 Cheminformatics (RDKit)
 # =====================================
 # Use rdkit-pypi (lightweight, compatible with Python 3.10 on Streamlit Cloud)
+rdkit==2025.09.1
 rdkit-pypi==2022.9.5
 py3dmol>=2.0.0
 
