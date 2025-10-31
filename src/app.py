@@ -19,9 +19,10 @@ import math
 try:
     from rdkit import Chem
     from rdkit.Chem import Draw
-    from rdkit.Chem import Descriptors
-    from rdkit.Chem import Lipinski
-    from rdkit.Chem import Crippen
+    import py3Dmol # <-- FIX 1: Corrected import
+    import streamlit.components.v1 as components
+    from rdkit import Chem
+    from rdkit.Chem import AllChem, Draw
     RDKIT_AVAILABLE = True
 except ImportError:
     RDKIT_AVAILABLE = False
@@ -81,30 +82,6 @@ st.markdown("""
     .property-value {
         font-size: 0.7rem;
         font-weight: bold;
-    }
-    .lipinski-pass {
-        background-color: #000000;
-        padding: 6px;
-        border-radius: 4px;
-        border-left: 3px solid #10b981;
-        font-size: 0.7rem;
-        margin: 3px 0;
-    }
-    .lipinski-fail {
-        background-color: #000000;
-        padding: 6px;
-        border-radius: 4px;
-        border-left: 3px solid #ef4444;
-        font-size: 0.7rem;
-        margin: 3px 0;
-    }
-    .lipinski-warning {
-        background-color: #fef3c7;
-        padding: 6px;
-        border-radius: 4px;
-        border-left: 3px solid #f59e0b;
-        font-size: 0.7rem;
-        margin: 3px 0;
     }
     /* Remove spacing */
     .block-container {
@@ -422,9 +399,9 @@ class FeatureExtractor:
         
         # Aliphatic index
         aliphatic_index = (aa_counts.get('A', 0) * 2.9 + 
-                          aa_counts.get('V', 0) * 4.2 + 
-                          aa_counts.get('I', 0) * 4.5 + 
-                          aa_counts.get('L', 0) * 3.8) / total * 100
+                           aa_counts.get('V', 0) * 4.2 + 
+                           aa_counts.get('I', 0) * 4.5 + 
+                           aa_counts.get('L', 0) * 3.8) / total * 100
         
         # GRAVY (Grand Average of Hydropathicity)
         gravy = sum(self.hydropathy.get(aa, 0) * count for aa, count in aa_counts.items()) / total
@@ -462,85 +439,6 @@ class FeatureExtractor:
         }
 
 
-# ==================== DRUG PROPERTY CALCULATOR ====================
-class DrugPropertyCalculator:
-    """Calculate drug properties including Lipinski's Rule of Five"""
-    
-    def __init__(self):
-        pass
-    
-    def calculate_lipinski_properties(self, mol):
-        """Calculate Lipinski's Rule of Five properties using RDKit"""
-        if not mol:
-            return None
-            
-        try:
-            # Molecular Weight
-            mol_wt = Descriptors.MolWt(mol)
-            
-            # LogP (using Wildman-Crippen method, same as PubChem)
-            logp = Crippen.MolLogP(mol)
-            
-            # Hydrogen Bond Donors (OH and NH groups)
-            hbd = Lipinski.NumHDonors(mol)
-            
-            # Hydrogen Bond Acceptors (O and N atoms)
-            hba = Lipinski.NumHAcceptors(mol)
-            
-            # Calculate Molar Refractivity
-            mr = Crippen.MolMR(mol)
-            
-            # Number of Rotatable Bonds
-            rotatable_bonds = Lipinski.NumRotatableBonds(mol)
-            
-            # Topological Polar Surface Area
-            tpsa = Descriptors.TPSA(mol)
-            
-            # Heavy Atom Count
-            heavy_atoms = Lipinski.HeavyAtomCount(mol)
-            
-            # Aromatic Rings
-            aromatic_rings = Lipinski.NumAromaticRings(mol)
-            
-            # Check Lipinski's Rule of Five violations
-            violations = 0
-            if mol_wt > 500:
-                violations += 1
-            if logp > 5:
-                violations += 1
-            if hbd > 5:
-                violations += 1
-            if hba > 10:
-                violations += 1
-            
-            # Determine drug-likeness
-            if violations <= 1:
-                drug_likeness = "Yes (0-1 violations)"
-                lipinski_status = "PASS"
-            else:
-                drug_likeness = f"No ({violations} violations)"
-                lipinski_status = "FAIL"
-            
-            return {
-                'molecular_weight': round(mol_wt, 2),
-                'logp': round(logp, 2),
-                'hbd': hbd,
-                'hba': hba,
-                'molar_refractivity': round(mr, 2),
-                'rotatable_bonds': rotatable_bonds,
-                'tpsa': round(tpsa, 2),
-                'heavy_atoms': heavy_atoms,
-                'aromatic_rings': aromatic_rings,
-                'lipinski_violations': violations,
-                'drug_likeness': drug_likeness,
-                'lipinski_status': lipinski_status
-            }
-            
-        except Exception as e:
-            print(f"Error calculating Lipinski properties: {e}")
-            return None
-
-
 # ==================== REAL ML PREDICTOR ====================
 class RealMLPredictor:
     """Uses actual trained ML models"""
@@ -548,7 +446,6 @@ class RealMLPredictor:
     def __init__(self):
         self.models_loaded = False
         self.feature_extractor = FeatureExtractor()
-        self.drug_calculator = DrugPropertyCalculator()
         self.load_models()
 
     def load_models(self):
@@ -559,10 +456,15 @@ class RealMLPredictor:
         try:
             with open(os.path.join(model_dir, 'classifier.pkl'), 'rb') as f:
                 self.classifier = pickle.load(f)
+                self.classifier.set_params(device='cpu')  # <-- ADD THIS LINE
+
             with open(os.path.join(model_dir, 'regressor.pkl'), 'rb') as f:
                 self.regressor = pickle.load(f)
+                self.regressor.set_params(device='cpu')  # <-- AND ADD THIS LINE
+
             with open(os.path.join(model_dir, 'scaler.pkl'), 'rb') as f:
                 self.scaler = pickle.load(f)
+            
             self.models_loaded = True
             return True
         except FileNotFoundError:
@@ -670,13 +572,6 @@ class RealMLPredictor:
 
             # Calculate physicochemical properties
             physico_props = self.feature_extractor.calculate_physicochemical_properties(protein_seq)
-            
-            # Calculate drug properties if RDKit is available
-            drug_props = {}
-            if RDKIT_AVAILABLE:
-                mol = Chem.MolFromSmiles(drug_smiles)
-                if mol:
-                    drug_props = self.drug_calculator.calculate_lipinski_properties(mol)
 
             result_dict = {
                 'binding_probability': float(binding_prob),
@@ -687,8 +582,7 @@ class RealMLPredictor:
                 'aromaticity': aromaticity,
                 'confidence': confidence,
                 'model_type': 'Trained ML Model' if self.models_loaded else 'Demo Mode',
-                'physicochemical_properties': physico_props,
-                'drug_properties': drug_props
+                'physicochemical_properties': physico_props
             }
             print(f"  Final result dictionary: {result_dict}")
             print("--- Prediction Successful ---")
@@ -784,7 +678,7 @@ def main():
     if st.session_state.get('results'):
         results = st.session_state.results
 
-        # Display molecule visualization and drug properties in the second column
+        # Display molecule visualization in the second column
         with col2:
             if RDKIT_AVAILABLE:
                 # Drug Molecule Visualization
@@ -794,67 +688,80 @@ def main():
                     try:
                         mol = Chem.MolFromSmiles(mol_smiles)
                         if mol:
-                            # Generate 2D coordinates
-                            from rdkit.Chem import AllChem
-                            mol = Chem.AddHs(mol)  # Add hydrogens for better visualization
-                            AllChem.Compute2DCoords(mol)
-                            st.image(Draw.MolToImage(mol, size=(300, 250)), 
+                            from rdkit.Chem import AllChem # Import AllChem
+                            
+                            # --- 2D Visualization ---
+                            mol_2d = Chem.AddHs(mol)  # Create 2D copy
+                            AllChem.Compute2DCoords(mol_2d)
+                            st.image(Draw.MolToImage(mol_2d, size=(300, 250)), 
                                    caption=f"2D Structure: {mol_smiles}")
                             
-                            # Display molecular properties
+                            # --- 3D Visualization (Clean & Stable) ---
+                            st.markdown("### 🧬 3D Molecular Structure")
+
+                            try:
+                                mol_3d = Chem.AddHs(mol)
+                                result = AllChem.EmbedMolecule(mol_3d, AllChem.ETKDGv3())
+                                if result != 0:
+                                    raise ValueError("3D embedding failed. Try a simpler or valid SMILES string.")
+
+                                AllChem.UFFOptimizeMolecule(mol_3d, maxIters=200)
+                                pdb_block = Chem.MolToPDBBlock(mol_3d)
+
+                                viewer = py3Dmol.view(width=350, height=300)
+                                viewer.addModel(pdb_block, 'pdb')
+                                viewer.setStyle({'stick': {'radius': 0.2, 'colorscheme': 'cyanCarbon'}})
+                                viewer.zoomTo()
+                                viewer.setBackgroundColor('#f8fafc')
+                                components.html(viewer._make_html(), height=300, width=350)
+
+                            except Exception as e:
+                                st.warning(f"⚠️ Could not render 3D structure: {e}")
+                            
+                            # --- Drug Properties (from base mol) ---
                             st.markdown("**Drug Properties:**")
                             mol_weight = AllChem.CalcExactMolWt(mol)
                             formula = AllChem.CalcMolFormula(mol)
                             st.write(f"Molecular Formula: {formula}")
                             st.write(f"Molecular Weight: {mol_weight:.2f} g/mol")
                             st.write(f"Number of Atoms: {mol.GetNumAtoms()}")
-                            st.write(f"Number of Bonds: {mol.GetNumBonds()}")
-                            
-                            # Display Lipinski's Rule of Five Analysis
-                            st.markdown("### 📊 Lipinski's Rule of Five")
-                            drug_props = results.get('drug_properties', {})
-                            
-                            if drug_props:
-                                # Lipinski Rule Criteria
-                                lipinski_rules = [
-                                    {"parameter": "Molecular Weight", "value": f"{drug_props['molecular_weight']} g/mol", "limit": "≤500", "status": "PASS" if drug_props['molecular_weight'] <= 500 else "FAIL"},
-                                    {"parameter": "LogP", "value": f"{drug_props['logp']}", "limit": "≤5", "status": "PASS" if drug_props['logp'] <= 5 else "FAIL"},
-                                    {"parameter": "H-Bond Donors", "value": f"{drug_props['hbd']}", "limit": "≤5", "status": "PASS" if drug_props['hbd'] <= 5 else "FAIL"},
-                                    {"parameter": "H-Bond Acceptors", "value": f"{drug_props['hba']}", "limit": "≤10", "status": "PASS" if drug_props['hba'] <= 10 else "FAIL"}
-                                ]
-                                
-                                # Display each rule with color coding
-                                violations_count = 0
-                                for rule in lipinski_rules:
-                                    if rule['status'] == 'PASS':
-                                        st.markdown(f'<div class="lipinski-pass">✓ {rule["parameter"]}: {rule["value"]} (Limit: {rule["limit"]})</div>', unsafe_allow_html=True)
-                                    else:
-                                        st.markdown(f'<div class="lipinski-fail">✗ {rule["parameter"]}: {rule["value"]} (Limit: {rule["limit"]})</div>', unsafe_allow_html=True)
-                                        violations_count += 1
-                                
-                                # Overall assessment
-                                if violations_count == 0:
-                                    st.success(f"✅ **Excellent Drug-Likeness**: 0 violations - High probability of good oral bioavailability")
-                                elif violations_count == 1:
-                                    st.warning(f"⚠️ **Good Drug-Likeness**: 1 violation - Moderate probability of oral bioavailability")
-                                else:
-                                    st.error(f"❌ **Poor Drug-Likeness**: {violations_count} violations - Low probability of oral bioavailability")
-                                
-                                # Additional drug properties
-                                st.markdown("### 🔬 Additional Properties")
-                                st.markdown(f"**Molar Refractivity:** {drug_props.get('molar_refractivity', 'N/A')}")
-                                st.markdown(f"**Rotatable Bonds:** {drug_props.get('rotatable_bonds', 'N/A')}")
-                                st.markdown(f"**TPSA:** {drug_props.get('tpsa', 'N/A')} Å²")
-                                st.markdown(f"**Heavy Atoms:** {drug_props.get('heavy_atoms', 'N/A')}")
-                                st.markdown(f"**Aromatic Rings:** {drug_props.get('aromatic_rings', 'N/A')}")
-                                
+                            st.write(f"Number of Bonds: {mol.GetNumBonds()}")                       
+
+
+
                         else:
                             st.warning("Could not generate image for this SMILES string.")
                     except Exception as img_err:
                         print(f"RDKit image generation error: {img_err}")
                         st.warning("RDKit error generating molecule image.")
             else:
-                st.warning("RDKit not available. Install with: pip install rdkit")
+                st.warning("RDKit or py3Dmol not available. Install with: pip install rdkit py3Dmol")
+                
+                # # Protein Structure Information
+                # st.markdown("### 🧫 Protein Information")
+                # protein_seq = st.session_state.get('protein_input', '')
+                # if protein_seq:
+                #     # Display protein sequence info
+                #     st.write(f"**Sequence Length:** {len(protein_seq)} amino acids")
+                    
+                #     # Calculate and display amino acid composition
+                #     from collections import Counter
+                #     aa_count = Counter(protein_seq)
+                #     common_aa = aa_count.most_common(5)
+                #     st.write("**Top 5 Amino Acids:**")
+                #     for aa, count in common_aa:
+                #         st.write(f"  {aa}: {count} ({count/len(protein_seq)*100:.1f}%)")
+                    
+                    # # Show protein properties from results
+                    # if results:
+                    #     st.write(f"**Molecular Weight:** ~{results['molecular_weight']:.0f} Da")
+                    #     st.write(f"**Aromaticity:** {results['aromaticity']*100:.1f}%")
+                        
+                        # # Display physicochemical properties
+                        # physico_props = results.get('physicochemical_properties', {})
+                        # if physico_props:
+                        #     st.write(f"**Theoretical pI:** {physico_props.get('theoretical_pi', 'N/A')}")
+                        #     st.write(f"**Instability Index:** {physico_props.get('instability_index', 'N/A')}")
 
         # Display results in the main column
         with col1:
@@ -904,7 +811,7 @@ def main():
             with main_col2:
                 st.markdown(f"<div class='property-value'>Instability Index: {physico_props.get('instability_index', 'N/A')}</div>", unsafe_allow_html=True)
             with main_col3:
-                st.markdown(f"<div class='property-value'>Aliphatic Index: {physico_props.get('aliphatic_index', 'N/A')}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div class'property-value'>Aliphatic Index: {physico_props.get('aliphatic_index', 'N/A')}</div>", unsafe_allow_html=True)
             with main_col4:
                 st.markdown(f"<div class='property-value'>GRAVY: {physico_props.get('gravy', 'N/A')}</div>", unsafe_allow_html=True)
             
