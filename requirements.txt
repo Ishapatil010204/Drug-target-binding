@@ -1,6 +1,6 @@
 # =====================================
 # 📦 Core Data & ML Libraries
-# ====================================
+# =====================================
 numpy>=1.26.0,<2.4.0
 pandas>=2.2.0,<3.0.0
 scikit-learn>=1.5.0,<1.8.0
@@ -12,11 +12,9 @@ tqdm>=4.65.0
 # =====================================
 # 🧪 Cheminformatics (RDKit)
 # =====================================
-# 🧪 Cheminformatics (RDKit)
-# RDKit is not supported on Streamlit Cloud (Python 3.12+)
-# Using rdkit-lite for compatibility (basic molecule features only)
-rdkit-lite
-
+# Use rdkit-pypi (lightweight, compatible with Python 3.10 on Streamlit Cloud)
+rdkit-pypi==2022.9.5
+py3dmol>=2.0.0
 
 # =====================================
 # 🔥 PyTorch (CPU build for compatibility)
@@ -36,4 +34,4 @@ sympy>=1.12.0,<1.15.0
 # 🌐 Web App Framework
 # =====================================
 streamlit==1.39.0
-rich<14.0.0
+rich>=13.0.0,<14.0.0
