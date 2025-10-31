@@ -14,7 +14,7 @@ tqdm>=4.65.0
 # =====================================
 # RDKit wheels from conda-forge (works up to Python 3.12)
 # If you're using Python 3.13, downgrade to 3.11 or 3.12 for RDKit support.
-#rdkit>=2025.9.1
+rdkit
 
 # =====================================
 # 🔥 PyTorch (CPU build for compatibility)
