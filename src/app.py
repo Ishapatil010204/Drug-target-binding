@@ -42,11 +42,9 @@ warnings.filterwarnings(
 # Try to import RDKit (optional)
 try:
     from rdkit import Chem
-    from rdkit.Chem import Draw
-    import py3Dmol # <-- FIX 1: Corrected import
+    from rdkit.Chem import Draw, AllChem   # ← AllChem here
+    import py3Dmol
     import streamlit.components.v1 as components
-    from rdkit import Chem
-    from rdkit.Chem import AllChem, Draw
     RDKIT_AVAILABLE = True
 except ImportError:
     RDKIT_AVAILABLE = False
