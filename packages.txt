@@ -1,0 +1,13 @@
+libglib2.0-0
+libsm6
+libxext6
+libxrender1
+libcairo2
+libpango-1.0-0
+libpangocairo-1.0-0
+libgomp1
+libgfortran5
+libatlas-base-dev
+libopenblas-dev
+liblapack-dev
+libboost-all-dev
